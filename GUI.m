@@ -1,43 +1,46 @@
 classdef GUI
-    %This class creates the UI elements to control the robot
+    %This class creates the UI elements to control the robots
+    properties
+        UIFigure
+    end 
 
     methods
-        function obj = GUI(DoBot,TM12,Claw)
+        function self = GUI()
 
             %Creation of UI elements
             bgcol = [31 180 255]/255;
-            fig = uifigure("Name","Grocery Packer UI");
-            fig.Color = [255,255,255]/255;
+            self.UIFigure = uifigure("Name","Grocery Packer UI");
+            self.UIFigure.Color = [255,255,255]/255;
 
-            DoBotUI = uipanel(fig,"Title","DoBot Controls","BackgroundColor",bgcol);
+            DoBotUI = uipanel(self.UIFigure,"Title","DoBot Controls","BackgroundColor",bgcol);
             DoBotUI.Position = [475 -100 160 400];
 
-            TM12UI = uipanel(fig,"Title","TM12 Controls","BackgroundColor",bgcol);
-            TM12UI.Position = [675 -100 160 400];
+            TM12UI = RobotUI(self,[675 -100 160 40]);
 
-            ColliderUI = uipanel(fig,"Title","Collider UI","BackgroundColor",bgcol);
+            % TM12UI = uipanel(fig,"Title","TM12 Controls","BackgroundColor",bgcol);
+            % TM12UI.Position = [675 -100 160 400];
+
+            ColliderUI = uipanel(self.UIFigure,"Title","Collider UI","BackgroundColor",bgcol);
             ColliderUI.Position = [475 -200 320 200];
 
-
-
             TestString = "Start System";
-            StatsBox =  uipanel(fig,"BackgroundColor",[0 255 0]/255);
+            StatsBox =  uipanel(self.UIFigure,"BackgroundColor",[0 255 0]/255);
             StatsBox.Position = [450,400,400,100];
-            SystemStatusUI = uilabel(StatsBox)
+            SystemStatusUI = uilabel(StatsBox);
             SystemStatusUI.Text = "<font style='color:white;'><b>" + TestString + " </font>";
             SystemStatusUI.Interpreter = "html";
             SystemStatusUI.FontSize = 32;
-            SystemStatusUI.Position = [100,25, 400, 44]
+            SystemStatusUI.Position = [100,25, 400, 44];
 
-            StartUI = uicontrol(fig);
+            StartUI = uicontrol(self.UIFigure);
             StartUI.String = 'Start';
-           StartUI.Position = [475 340 160 40];
-           StartUI.Callback = @Start;
+            StartUI.Position = [475 340 160 40];
+            StartUI.Callback = @Start;
 
-           EStopUI = uicontrol(fig);
-           EStopUI.String = 'E-STOP';
-           EStopUI.Position = [675 340 160 40];
-           EStopUI.Callback = @EStop;
+            EStopUI = uicontrol(self.UIFigure);
+            EStopUI.String = 'E-STOP';
+            EStopUI.Position = [675 340 160 40];
+            EStopUI.Callback = @EStop;
 
 
             
@@ -45,22 +48,23 @@ classdef GUI
             %%
             %Functions called when UI button is hit
             function EStop(src,event)
-                input('E-STOP pushed, hit enter to continue');
+                input('E-STOP pushed, hit enter to continue'); % -DELETE THIS LINE -
+                % - ADD - Function for EStop - ADD -
             end
-
 
             function Start(src,event)
                 Items = SpawnItems(transl(-2,-0.25,0));
                 PlaceLocation = PlaceLocations(transl(-0.5,-0.25,0));
-                ScanAndPack(DoBot,ROBOTNAME,Items,PlaceLocation,Claw);
+                % - ADD - Function to being movement - ADD -
             end
         end
     end
 
     methods (Static)
 
-        function UpdateStatus(Message)
-            Status = uicontrol('style','text','String',Message,'Position',[80 300 80 30]);
+        function UpdateSystemStatus(Message,Colour)
+            StatsBox.Background = Colour;
+            SystemStatusUI.Text = "<font style='color:white;'><b>" + Message + " </font>";
         end
 
         function UpdateUI(UR3q,LinUR3)
@@ -70,15 +74,6 @@ classdef GUI
             GoalZ = uicontrol('style','text','String',{'Goal Z: ',Nextpos(3)},'Position',[20 270 80 30]);
         end
 
-        function DisplayVolume(Vol)
-            Volume = uicontrol('style','text','String',{'Volume is: ',Vol},'Position',[80 330 80 30]);
-        end
 
-        function UpdateCurrent(UR3q,LinUR3)
-            % Currentpos = LinUR3.model.fkineUTS(LinUR3.model.getpos);
-            % CurrentX = uicontrol('style','text','String',{'Current X: ',Currentpos(1,4)},'Position',[120 210 80 30]);
-            % CurrentY = uicontrol('style','text','String',{'Current Y: ',Currentpos(2,4)},'Position',[120 240 80 30]);
-            % CurrentZ = uicontrol('style','text','String',{'Current Z: ',Currentpos(3,4)},'Position',[120 270 80 30]);
-        end
     end
 end

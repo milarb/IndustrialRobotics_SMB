@@ -8,14 +8,15 @@ classdef BuildEnvironment < handle
     
     methods
         function self = BuildEnvironment()
-            EStop1 = PlaceObject('emergencyStopWallMounted.ply');
-             EStop2 = PlaceObject('emergencyStopWallMounted.ply',[-2.05,2.05,1]);
-             FireEx = PlaceObject('fireExtinguisher.ply',[1,1.8,0]);
-             FireEx2 = PlaceObject('fireExtinguisher.ply',[-4,2.2,0]);
+             EStop = PlaceObject('emergencyStopWallMounted.ply',[-1.5,-0.3,0.7]);
+             FireEx = PlaceObject('fireExtinguisher.ply',[-2.5,0,0]);
+             Basket = PlaceObject('Basket.ply',[-0.45,0,0.65]);
              surf([-1.5,-1.5;-2,-2] ,[-0.4,-0.4;-0.4,-0.4],  [1.55,1.2;1.55,1.2],'CData',imread('DangerSign.jpg') ,'FaceColor','texturemap');
-             surf([1,1;-4,-4] ,[2.5,2.5;2.5,2.5], [2,0;2,0] ,'CData',imread('Background.jpg') ,'FaceColor','texturemap');
+             surf([-4.5,1;-4.5,1] ,[4,4;4,4], [2.5,2.5;0,0] ,'CData',imread('Background.jpg') ,'FaceColor','texturemap');
+             surf([1,1;1,1] ,[4,-1.5;4,-1.5], [2.5,2.5;0,0] ,'CData',imread('Background.jpg') ,'FaceColor','texturemap');
              Table = PlaceObject('T22.ply',[-1.4,0,0]);
-             surf([-5.0,-5.0;3.0,3.0] ,[-2,3;-2,3], [0.01,0.01;0.01,0.01] ,'CData',imread('Wood.jpg') ,'FaceColor','texturemap');
+             Table2 = PlaceObject('T22.ply',[-1.4,2.5,0]);
+             surf([-4.5,-4.5;1,1] ,[-1.5,4;-1.5,4], [0.01,0.01;0.01,0.01] ,'CData',imread('Wood.jpg') ,'FaceColor','texturemap');
              axis equal
         end
 
@@ -23,9 +24,9 @@ classdef BuildEnvironment < handle
     %%
     methods (Static)
 
-        function Robots = SpawnRobots()
-            Robots{1} = DobotMagician(transl(-1.5,0.3, 0.7));
-            Robots{2} = UR3(transl(-0.8,0.2, 0.7));
+        function [DoBot TM12] = SpawnRobots
+            DoBot = DobotMagician(transl(-1.5,0.3, 0.7));
+            TM12 = UR3(transl(-0.8,0.2, 0.7));
         end
 
     end

@@ -3,20 +3,22 @@ classdef Main
     %   Detailed explanation goes here
     properties
         SystemRunning;
+        DoBot
+        TM12
+        gui
     end
 
     methods
         function self = Main
             hold on
             SystemRunning = true;
-            gui = GUI(self);
-            gui.UpdateSystemStatus(gui.SystemStatusUI,gui.StatsBox, "Booting Up", [200,200,0]) 
-            pause(2)%Give time for UI to appear
+            self.gui = GUI(self);
+            self.gui.UpdateSystemStatus(self.gui.SystemStatusUI,self.gui.StatsBox, "Booting Up", [200,200,0]) 
             BuildEnvironment;
  
-            Robots = BuildEnvironment.SpawnRobots;
-            CollisionControl(Robots{1},Robots{2},gui);
-            gui.UpdateSystemStatus(gui.SystemStatusUI,gui.StatsBox,"System Ready", [0,255,0])
+            [self.DoBot self.TM12] = BuildEnvironment.SpawnRobots;
+            CollisionControl(self);
+            self.gui.UpdateSystemStatus(self.gui.SystemStatusUI,self.gui.StatsBox,"System Ready", [0,255,0])
 
 
             % while SystemRunning

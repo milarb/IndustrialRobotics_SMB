@@ -14,12 +14,13 @@ classdef Main
         function self = Main
             hold on
             SystemRunning = true;
-            %self.gui = GUI(self);
+            NewGUITest;
+            clc;
             %self.gui.UpdateSystemStatus(self.gui.SystemStatusUI,self.gui.StatsBox, "Booting Up", [200,200,0]) 
             BuildEnvironment;
  
-            % [self.UR3 self.TM12, self.ExtraUR3] = BuildEnvironment.SpawnRobots;
-            %CollisionControl(self);
+            [self.UR3 self.TM12, self.ExtraUR3] = BuildEnvironment.SpawnRobots;
+            CollisionControl(self);
             self.gui = GUI(self);
             self.gui.UpdateSystemStatus(self.gui.SystemStatusUI,self.gui.StatsBox,"System Ready", [0,255,0])
 

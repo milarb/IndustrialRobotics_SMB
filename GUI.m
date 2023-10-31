@@ -6,53 +6,73 @@ classdef GUI
         StatsBox;
         SystemStatusUI;
         System
-        DoBotPos;
+        UR3Bot;
+        UR3UI;
+
+        GUIWidth = 400;
     end
 
     methods
         function self = GUI(System)
 
             %Creation of UI elements
-            bgcol = [31 180 255]/255;
+            bgcol = [255 255 255]/255;
+            self.System = System;
             
            self.Figure = uifigure("Name","Grocery Packer UI");
            self.Figure.Position(3:4) = [560 420]
             self.Figure.Color = [255,255,255]/255;
 
-            DoBotUI = uipanel(self.Figure,"Title","DoBot Controls","BackgroundColor",bgcol);
-            DoBotUI.Position = [0 -100 160 400];
+            URUI = uipanel(self.Figure,"Title","DoBot Controls","BackgroundColor",bgcol);
+            URUI.Position = [0 -150 self.GUIWidth/2 400];
 
             %TM12UI = RobotUI(self.Figure,[675 -100 160 40]);
 
             TM12UI = uipanel(self.Figure,"Title","TM12 Controls","BackgroundColor",bgcol);
-            TM12UI.Position = [200 -100 160 400];
+            TM12UI.Position = [self.GUIWidth/2 -150 self.GUIWidth/2 400];
 
             ColliderUI = uipanel(self.Figure,"Title","Collider UI","BackgroundColor",bgcol);
             ColliderUI.Position = [0 -200 320 200];
 
             self.StatsBox =  uipanel(self.Figure,"BackgroundColor",[0,225,0]/255);
-            self.StatsBox.Position = [0,400,400,100];
+            self.StatsBox.Position = [0,self.GUIWidth,self.GUIWidth,100];
             self.SystemStatusUI = uilabel(self.StatsBox);
             self.SystemStatusUI.Interpreter = "html";
             self.SystemStatusUI.FontSize = 32;
             self.SystemStatusUI.Position = [100,25, 400, 44];
 
-            DoBotControlUI(DoBotUI);
+            UR3ControlUI(URUI);
 
             StartUI = uicontrol(self.Figure);
             StartUI.String = 'Start';
-            StartUI.Position = [0 340 160 40];
+            StartUI.Position = [0 340 self.GUIWidth/2 40];
             StartUI.Callback = @Start;
 
             EStopUI = uicontrol(self.Figure);
             EStopUI.String = 'E-STOP';
-            EStopUI.Position = [200 340 160 40];
+            EStopUI.Position = [self.GUIWidth/2 340 self.GUIWidth/2 40];
             EStopUI.Callback = @EStop;
 
             EStopUI = uicontrol(self.Figure);
             EStopUI.String = 'Show Colliders';
-            EStopUI.Position = [400 340 160 40];
+            EStopUI.Position = [0 280 self.GUIWidth/2 40];
             EStopUI.Callback = @EStop;
+
+            EStopUI = uicontrol(self.Figure);
+            EStopUI.String = 'Box Collider';
+            EStopUI.Position = [self.GUIWidth/2 280 self.GUIWidth/2 40];
+            EStopUI.Callback = @EStop;
+
+            % while true
+            %     try
+            %        self.UR3Bot = System.UR3;
+            %     end
+            %     if self.UR3Bot ~= []
+            %         retrun
+            %     end
+            % end
+            % 
+            % disp("I have robot!")
 
             
 
@@ -76,65 +96,71 @@ classdef GUI
                 % - ADD - Function to being movement - ADD -
             end
 
-            function DoBotControlUI(parent)
-            sliderProperties = struct('Style', 'slider', 'Value', 0, 'SliderStep', [0.01 0.2], 'Callback', @self.DoBotControl);
-            uicontrol(parent,sliderProperties ,  'Position', [0 80 60 20], 'String', 'sliderX' , 'Min', -1 ,  'Max', 3);
-            uicontrol(parent,sliderProperties ,  'Position', [0 60 60 20], 'String', 'sliderY' , 'Min', -1 ,  'Max', 3);
-            uicontrol(parent,sliderProperties ,  'Position', [0 40 60 20], 'String', 'sliderZ' , 'Min', -1 ,  'Max', 3);
-
+            function UR3ControlUI(parent)
+            sliderProperties = struct('Style', 'slider', 'Value', 0, 'SliderStep', [0.01 0.2], 'Callback', @UR3QControl);
+            uicontrol(parent,sliderProperties ,  'Position', [self.GUIWidth/4- 60 100 120 20], 'String', 'slider1' , 'Min', -2*pi ,  'Max', 2*pi);
+            uicontrol(parent,sliderProperties ,  'Position', [self.GUIWidth/4- 60 80 120 20], 'String', 'slider2' , 'Min', -2*pi ,  'Max', 2*pi);
+            uicontrol(parent,sliderProperties ,  'Position', [self.GUIWidth/4- 60 60 120 20], 'String', 'slider3' , 'Min', -2*pi ,  'Max', 2*pi);
+            uicontrol(parent,sliderProperties ,  'Position', [self.GUIWidth/4- 60 40 120 20], 'String', 'slider4' , 'Min', -2*pi ,  'Max', 2*pi);
+            uicontrol(parent,sliderProperties ,  'Position', [self.GUIWidth/4- 60 20 120 20], 'String', 'slider5' , 'Min', -2*pi ,  'Max', 2*pi);
+            uicontrol(parent,sliderProperties ,  'Position', [self.GUIWidth/4- 60 00 120 20], 'String', 'slider6' , 'Min', -2*pi ,  'Max', 2*pi);
 
             SendPos = uicontrol(parent);
             SendPos.String = 'Enter';
-            SendPos.Position = [0 140 60 20];
-            SendPos.Callback = @SendDoBotPos;
-            xInput = uieditfield(parent,"numeric",'Position', [0 200 60 20])
-            yInput = uieditfield(parent,"numeric",'Position', [0 180 60 20])
-            zInput = uieditfield(parent,"numeric",'Position', [0 160 60 20])
-            self.DoBotPos = [xInput,yInput,zInput]
+            SendPos.Position = [self.GUIWidth/4 - 30 140 60 20];
+            SendPos.Callback = @SendUR3Pos;
+            xInput = uieditfield(parent,"numeric",'Position', [self.GUIWidth/4- 30 200 60 20])
+            yInput = uieditfield(parent,"numeric",'Position', [self.GUIWidth/4- 30 180 60 20])
+            zInput = uieditfield(parent,"numeric",'Position', [self.GUIWidth/4- 30 160 60 20])
+            self.UR3UI = [xInput,yInput,zInput];
             end
 
-            function SendDoBotPos(src,event)
-                values = System.DoBotPos
-                pos = [values(1).Value,values(2).Value,values(3).Value]
-                transPos = transl(pos);
-                Goalq = System.DoBot.model.ikcon(pos);
-                Movement = jtraj(System.DoBot.model.getpos,Goalq,50);
+            function SendUR3Pos(src,event)
+                values = self.UR3UI
+                pos = [values(1).Value,values(2).Value,values(3).Value];
+                trans = transl(pos)
+                Goalq = System.UR3.model.ikcon(trans);
+                Movement = jtraj(System.UR3.model.getpos,Goalq,50);
 
                 for i = 1:50
-                    System.DoBot.model.animate(Movement(i,:));
+                    System.UR3.model.animate(Movement(i,:));
                     drawnow()
                 end
             end
+            
 
-            function DoBotControl(self,source, ~)
-                sliderValue = get(source, 'Value');
-                tr = self.camera_h.T.T;
+            function UR3QControl(self,source, ~)
+                StringName = source.Source.String;
 
-                switch source.String
-                    case 'sliderX'
-                        Gaolq = System.DoBot.model.getpos;
-                        Gaolq(1) = sliderValue
-                    case 'sliderY'
-                        Gaolq = System.DoBot.model.getpos;
-                        Gaolq(2) = sliderValue
-                    case 'sliderZ'
-                        Gaolq = System.DoBot.model.getpos;
-                        Gaolq(3) = sliderValue
+                switch StringName
+                    case 'slider1'
+                        disp(source.Source.Value);
+                        % Gaolq = System.DoBot.model.getpos;
+                        % Gaolq(1) = sliderValue
+                    case 'slider2'
+                        disp(source.Source.Value);
+                        % Gaolq = System.DoBot.model.getpos;
+                        % Gaolq(2) = sliderValue
+                        disp(source.Source.Value);
+                    case 'slider3'
+                        % Gaolq = System.DoBot.model.getpos;
+                        % Gaolq(3) = sliderValue
                 end
 
-                Movement = jtraj(System.DoBot.model.getpos,Gaolq,10);
-                for i = 1:10
-                    System.DoBot.model.animate(Movement(i,:));
-                    drawnow()
-                end
+                % Movement = jtraj(System.DoBot.model.getpos,Gaolq,5);
+                % for i = 1:5
+                %     System.DoBot.model.animate(Movement(i,:));
+                %     drawnow()
+                % end
                
             end
 
             
-        end
     end
-
+    end
     methods (Static)
+        
+        %Full Load UI Here???
 
         function UpdateSystemStatus(TextContainer,ColourContainer,Message,Colour) 
             TextContainer.Text = "<font style='color:white;'><b>" + Message + " </font>";

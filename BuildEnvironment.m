@@ -22,12 +22,14 @@ classdef BuildEnvironment < handle
              Table0 = PlaceObject('T33.ply',[-1.4,0,0]);
              Table2 = PlaceObject('T22.ply',[-1.4,4.1,0]);
 
-             surf([-7.5,-7.5;-7.5,-7.5] ,[5,-1;5,-1], [2.5,2.5;0,0] ,'CData',imread('Background.jpg') ,'FaceColor','texturemap');
+             surf([-7.5,-7.5;-7.5,-7.5] ,[2,-1;2,-1], [2.5,2.5;0,0] ,'CData',imread('Shelf.jpg') ,'FaceColor','texturemap');
+             surf([-7.5,-7.5;-7.5,-7.5] ,[2,5;2,5], [2.5,2.5;0,0] ,'CData',imread('Shelf.jpg') ,'FaceColor','texturemap');
 
-             surf([-7.5,-6;-7.5,-6] ,[3,3;3,3], [2.5,2.5;0,0] ,'CData',imread('Background.jpg') ,'FaceColor','texturemap');
-             surf([-7.5,-6;-7.5,-6] ,[-0.8,-0.8;-0.8,-0.8], [2.5,2.5;0,0] ,'CData',imread('Background.jpg') ,'FaceColor','texturemap');
 
-             surf([-7.5,-7.5;1.8,1.8] ,[-1,5;-1,5], [0.01,0.01;0.01,0.01] ,'CData',imread('Wood.jpg') ,'FaceColor','texturemap');
+             surf([-7.5,-6;-7.5,-6] ,[3,3;3,3], [2.5,2.5;0,0] ,'CData',imread('Shelf.jpg') ,'FaceColor','texturemap');
+             surf([-7.5,-6;-7.5,-6] ,[-0.8,-0.8;-0.8,-0.8], [2.5,2.5;0,0] ,'CData',imread('Shelf.jpg') ,'FaceColor','texturemap');
+
+             surf([-7.5,-7.5;1.8,1.8] ,[-1,5;-1,5], [0.01,0.01;0.01,0.01] ,'CData',imread('Wood3.jpg') ,'FaceColor','texturemap');
              axis equal
         end
 
@@ -35,10 +37,10 @@ classdef BuildEnvironment < handle
     %%
     methods (Static)
 
-        function [DoBot TM12Bot,ExtraDo] = SpawnRobots
-            DoBot = UR3(transl(-1.5,0.3, 0.7));
+        function [UR TM12Bot,ExtraUR] = SpawnRobots
+            UR = UR3(transl(-1.5,0.3, 0.7));
             TM12Bot = TM12(transl(-0.8,0.9, 0.5));
-            ExtraDo = UR3(transl(-1.5,1.3, 0.7));
+            ExtraUR = UR3(transl(-1.5,1.3, 0.7));
         end
 
     end

@@ -3,7 +3,7 @@ classdef SpawnItems < handle
     properties
         SlotCount = 9;
 
-        Wallpos;
+        ItemPos;
     end
 
     methods
@@ -16,9 +16,9 @@ classdef SpawnItems < handle
             i = 1;
             for r = 1:3
                 for c = 1:3
-                    self.Wallpos{i} = self.GetBrickModel(['StartingSpot',num2str(i)]);
-                    self.Wallpos{i}.base =  baseTr * transl((c*0.1),r*0.13 - 0.05,0.85);
-                    plot3d(self.Wallpos{i},0,'workspace',workspace,'view',[-30,30],'delay',0,'noarrow','nowrist');
+                    self.ItemPos{i} = self.ItemModel(['StartingSpot',num2str(i)]);
+                    self.ItemPos{i}.base =  baseTr * transl((c*0.1),r*0.13 - 0.05,0.8);
+                    plot3d(self.ItemPos{i},0,'workspace',workspace,'view',[-30,30],'delay',0,'noarrow','nowrist');
                     i = i + 1;
                 end
 
@@ -30,7 +30,7 @@ classdef SpawnItems < handle
 
     methods (Static)
         %%Creates position in wall for brick to go
-        function model = GetBrickModel(name)
+        function model = ItemModel(name)
             if nargin < 1
                 name = 'Wall';
             end

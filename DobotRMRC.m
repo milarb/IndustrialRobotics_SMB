@@ -63,6 +63,7 @@ qMatrix = nan(steps,5);
  qMatrix(1,:) = dobot.model.ikcon(T1);                 
 % 
 %%%RMRC qmatrix population
+
 for i = 1:steps-1
     xdot = (x(:,i+1) - x(:,i))/deltaT;                             
     J = dobot.model.jacob0(qMatrix(i,:));            
@@ -70,6 +71,7 @@ for i = 1:steps-1
     qdot = inv(J)*xdot;                             
     qMatrix(i+1,:) =  qMatrix(i,:) + deltaT*qdot';                   
 end
+
 
 %%%Plotting qmatrix
 dobot.model.plot(qMatrix,'trail','r-');

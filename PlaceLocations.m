@@ -3,7 +3,7 @@ classdef PlaceLocations < handle
     properties
         SlotCount = 9;
 
-        Wallpos;
+        EndPos;
     end
 
     methods
@@ -16,9 +16,9 @@ classdef PlaceLocations < handle
             i = 1;
             for r = 1:3
                 for c = 1:3
-                    self.Wallpos{i} = self.GetBrickModel(['FinishSpot',num2str(i)]);
-                    self.Wallpos{i}.base =  baseTr * transl((c*0.1),r*0.13 - 0.05,0.85);
-                    plot3d(self.Wallpos{i},0,'workspace',workspace,'view',[-30,30],'delay',0,'noarrow','nowrist');
+                    self.EndPos{i} = self.GetBrickModel(['FinishSpot',num2str(i)]);
+                    self.EndPos{i}.base =  baseTr * transl((c*0.1),r*0.13 - 0.05,0.8);
+                    plot3d(self.EndPos{i},0,'workspace',workspace,'view',[-30,30],'delay',0,'noarrow','nowrist');
                     i = i + 1;
                 end
 
@@ -34,7 +34,7 @@ classdef PlaceLocations < handle
             if nargin < 1
                 name = 'Wall';
             end
-            [faceData,vertexData] = plyread('Milk.ply','tri');
+            [faceData,vertexData] = plyread('Ghost.ply','tri');
             link1 = Link('alpha',pi,'a',0,'d',-0.1,'offset',0);
             model = SerialLink(link1,'name',name);
 

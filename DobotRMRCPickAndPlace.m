@@ -32,15 +32,6 @@ for i = 1:9
     startTform(:,:,i) = transl(startPositions(i,:));
 end
 
-T1 = transl(0.2,0.2,0);
-T2 = transl(0.2,0.25,0);
-T3 = transl(0.2,0.3,0);
-T4 = transl(0.15,0.2,0);
-T5 = transl(0.15,0.25,0);
-T6 = transl(0.15,0.3,0);
-T7 = transl(0.25,0.2,0);
-T8 = transl(0.25,0.25,0);
-T9 = transl(0.25,0.3,0);
 
 
 %%%%%%%%Object second position/transform
@@ -58,15 +49,6 @@ for i = 1:9
    secondTform(:,:,i) = startTform(:,:,i);
    secondTform(3,4,i) = startTform(3,4,i) + height;
 end
-S1 = transl(0.2,0.2,0.4);
-S2 = transl(0.2,0.25,0.4);
-S3 = transl(0.2,0.3,0.4);
-S4 = transl(0.15,0.2,0.4);
-S5 = transl(0.15,0.25,0.4);
-S6 = transl(0.15,0.3,0.4);
-S7 = transl(0.25,0.2,0.4);
-S8 = transl(0.25,0.25,0.4);
-S9 = transl(0.25,0.3,0.4);
 
 
 %%%%%%Starting qvalues

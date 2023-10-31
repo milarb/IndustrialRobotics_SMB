@@ -39,8 +39,6 @@ classdef GUI
 
             DoBotControlUI(DoBotUI);
 
-
-
             StartUI = uicontrol(self.Figure);
             StartUI.String = 'Start';
             StartUI.Position = [0 340 160 40];
@@ -74,6 +72,7 @@ classdef GUI
                 System.SystemRunning = false;
                 Items = SpawnItems(transl(-2,-0.25,0));
                 PlaceLocation = PlaceLocations(transl(-0.5,-0.25,0));
+                BensRMCR(System.DoBot,System.TM12,Items,PlaceLocation);
                 % - ADD - Function to being movement - ADD -
             end
 

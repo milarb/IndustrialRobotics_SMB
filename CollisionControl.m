@@ -3,8 +3,12 @@ classdef CollisionControl
     %   Detailed explanation goes here
     
     properties
+        %Size of collision warning detection
         SafeZoneSize = [0.1,0.1,0.1];
-        CollsionSize = SafeZoneSize/2;
+        %Size of collision detection
+        CollsionSize = [0.1,0.1,0.1]/2;
+
+        %Mesh points of colliders
         TablePoints
         BarrierPoints
     end
@@ -13,10 +17,12 @@ classdef CollisionControl
         function self = CollisionControl(System)
             % c1 = CollisionControl.CreateRobotColider(self.Dobot)
             % c2 = CollisionControl.CreateRobotColider(self.TM12)
-            [TableMesh,self.TablePoints] = CollisionControl.CreateMeshPlain(-1.3,0,0.7,0.3,true);
-            [TableMesh2,self.BarrierPoints] = CollisionControl.CreateMeshPlain(1.5,0,1,0.3,false);
+
+            %Create meshes
+           % [TableMesh,self.TablePoints] = CollisionControl.CreateMeshPlain(-1.3,0,0.7,0.3,true);
+            %[TableMesh2,self.BarrierPoints] = CollisionControl.CreateMeshPlain(1.5,0,1,0.3,false);
             pos = System.TM12.model.fkine(System.TM12.model.getpos).t;
-            [ellip,elippoints] = CollisionControl.CreateEllipsoid(pos(1),pos(2),pos(3),self.SafeZoneSize);
+            %[ellip,elippoints] = CollisionControl.CreateEllipsoid(pos(1),pos(2),pos(3),self.SafeZoneSize);
         end
         
     end
@@ -24,6 +30,7 @@ classdef CollisionControl
     %%
     methods (Static)
 
+        %Check for incoming collision
         function CollisionAvoidanceCheck(mesh,ellips)
             status = CheckForCollision(mesh,ellips,SafeZoneSize);
             if status == true
@@ -31,6 +38,7 @@ classdef CollisionControl
             end
         end
 
+        %check for collision
         function CollisionCheck(mesh,ellips)
             status = CheckForCollision(mesh,ellips,CollsionSize);
             if status == true
@@ -41,7 +49,7 @@ classdef CollisionControl
         end
 
 
-
+        %Creates meshes on robot links
         function RobotColider = CreateRobotColider(robot)
             centerPoint = [0,0,0];
             radii = [0.2,0.1,0.1];
@@ -69,6 +77,7 @@ classdef CollisionControl
             Ellipsoid = surf(X,Y,Z);
         end
 
+        %Creates collision meshes
         function [CubeMesh,CubePoints] = CreateMeshPlain(CenterX,CenterY,LengthX,LengthY,isFlat)
             [Y,Z] = meshgrid((CenterY - LengthY):0.1:(CenterY + LengthY),(CenterX - LengthX):0.1:(CenterX + LengthX));
             sizeMat = size(Y);

@@ -5,7 +5,7 @@ classdef NewGUITest
     properties (Access = public)
 
         UR3POS
-
+        System
 
         UIFigure               matlab.ui.Figure
         ShowCollidersButton_2  matlab.ui.control.Button
@@ -130,17 +130,24 @@ classdef NewGUITest
         OFFLabel               matlab.ui.control.Label
         CoGrocerLabel          matlab.ui.control.Label
         ScanPackButton         matlab.ui.control.Button
+        TestSystem
     end
 
     % Callbacks that handle component events
     methods (Access = private)
 
-        function HomeRobotsButtonPushed(app)
-            input('HomeRobotsButtonPushed');
-        end
-
         function TurnOn(app)
-            input('TurnOn');
+            % Main();
+            % app.OFFLabel.Text = 'Booting...';
+            % app.OFFLabel.BackgroundColor = [0.8 0.8 0];
+            % % BuildEnvironment;
+            % % Items = SpawnItems(transl(-2,-0.25,0));
+            % % System.PlaceLocation = PlaceLocations(transl(-0.5,-0.25,0));
+            % % [app.UR3, System.TM12, System.ExtraUR3] = BuildEnvironment.SpawnRobots;
+            % % col = CollisionControl(System);
+            % app.OFFLabel.BackgroundColor = [0 1 0];
+            % app.OFFLabel.Text = 'System Ready';
+            % disp("HELLO WORLD");
         end
 
         function EStop(app)
@@ -148,7 +155,7 @@ classdef NewGUITest
         end
 
         function ScanNPack(app)
-            input('ScanNPack');
+            BensRMCR(app.System.UR3,app.System.TM12,app.System.Items,app.System.PlaceLocation,app.System.Colliders);
         end
 
         function ShowColliders(app)
@@ -156,14 +163,29 @@ classdef NewGUITest
         end
 
         function HomeRobots(app)
-            input('HomeRobots');
+            Goalq = [0,0,0,0,0,0];
+            Movement1 = jtraj(app.System.UR3.model.getpos,Goalq,100);
+            Movement2 = jtraj(app.System.TM12.model.getpos,Goalq,100);
+            for i = 1:100
+                app.System.UR3.model.animate(Movement1(i,:));
+                app.System.TM12.model.animate(Movement2(i,:));
+                drawnow()
+            end
         end
 
-        function SendPos(app)
+        function SendPos(app,Robot)
             values = app.UR3POS 
             XYZ = [values(1).Value,values(2).Value,values(3).Value]
             RPY = [values(4).Value,values(5).Value,values(6).Value]
-            input('SendPos');
+            trans = SE3(transl(XYZ) * trotz(RPY(3))* troty(RPY(2))* trotx(RPY(1)))
+
+             Goalq = Robot.model.ikcon(trans);
+                Movement = jtraj(Robot.model.getpos,Goalq,100);
+
+                for i = 1:100
+                    Robot.model.animate(Movement(i,:));
+                    drawnow()
+                end
         end
 
         function AdjustCartasian(app,index,incrament)
@@ -231,6 +253,7 @@ classdef NewGUITest
             % Create Switch
             app.Switch = uiswitch(app.UIFigure, 'rocker');
             app.Switch.Position = [47 607 20 45];
+            app.Switch.ValueChangedFcn = @(src,event) TurnOn(app)
 
             % Create TabGroup
             app.TabGroup = uitabgroup(app.UIFigure);
@@ -435,7 +458,7 @@ classdef NewGUITest
             % Create EnterButton
             app.EnterButton = uibutton(app.XYZTab, 'push');
             app.EnterButton.Position = [132 59 100 23];
-            app.EnterButton.ButtonPushedFcn = @(src,event) SendPos(app)
+            app.EnterButton.ButtonPushedFcn = @(src,event) SendPos(app,app.System.UR3)
             app.EnterButton.Text = 'Enter';
 
             %% Q Tab
@@ -848,10 +871,10 @@ classdef NewGUITest
     methods (Access = public)
 
         % Construct app
-        function app = NewGUITest
-
+        function app = NewGUITest(System)
+            app.System = System;
             % Create UIFigure and components
-            createComponents(app)
+            createComponents(app);
 
 
             if nargout == 0

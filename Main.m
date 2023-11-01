@@ -7,21 +7,23 @@ classdef Main
         TM12
         ExtraUR3
         gui
+        Items
+        PlaceLocation
+        TablePoints
+        BarrierPoints
+        Colliders
     end
 
     methods
-        function self = Main
+        function System = Main
             hold on
-            NewGUITest;
-            clc;
-            %self.gui.UpdateSystemStatus(self.gui.SystemStatusUI,self.gui.StatsBox, "Booting Up", [200,200,0]) 
+            
             BuildEnvironment;
- 
-            [self.UR3 self.TM12, self.ExtraUR3] = BuildEnvironment.SpawnRobots;
-            Colliders = CollisionControl(self);
-            % CollisionControl.RobotCollisionCheck(self.UR3,col)
-            self.gui = GUI(self,Colliders);
-           % self.gui.UpdateSystemStatus(self.gui.SystemStatusUI,self.gui.StatsBox,"System Ready", [0,255,0])
+            System.Items = SpawnItems(transl(-2,-0.25,0));
+            System.PlaceLocation = PlaceLocations(transl(-0.5,-0.25,0));
+            [System.UR3 System.TM12, System.ExtraUR3] = BuildEnvironment.SpawnRobots;
+            System.Colliders = CollisionControl(System);
+            NewGUITest(System);
         end
         
     end

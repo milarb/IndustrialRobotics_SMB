@@ -3,6 +3,10 @@ classdef NewGUITest
     % Properties that correspond to app components
     % Properties that correspond to app components
     properties (Access = public)
+
+        UR3POS
+
+
         UIFigure               matlab.ui.Figure
         ShowCollidersButton_2  matlab.ui.control.Button
         HomeRobotsButton       matlab.ui.control.Button
@@ -156,7 +160,18 @@ classdef NewGUITest
         end
 
         function SendPos(app)
+            values = app.UR3POS 
+            XYZ = [values(1).Value,values(2).Value,values(3).Value]
+            RPY = [values(4).Value,values(5).Value,values(6).Value]
             input('SendPos');
+        end
+
+        function AdjustCartasian(app,index,incrament)
+            input(num2str(index));
+        end
+
+        function SendJoints(app,Slider)
+            %input(num2str(Slider.Value));
         end
     end
 
@@ -206,7 +221,7 @@ classdef NewGUITest
             % Create ESTOPButton_2
             app.ESTOPButton_2 = uibutton(app.UIFigure, 'state');
             app.ESTOPButton_2.Text = 'E-STOP';
-            app.ScanPackButton.ButtonPushedFcn = @(src,event) EStop(app)
+            % app.ESTOPButton_2.ButtonPushedFcn = @(src,event) EStop(app)
             app.ESTOPButton_2.BackgroundColor = [1 0 0];
             app.ESTOPButton_2.FontName = 'BolsterBold';
             app.ESTOPButton_2.FontSize = 24;
@@ -307,35 +322,43 @@ classdef NewGUITest
             app.YawEditField = uieditfield(app.XYZTab, 'numeric');
             app.YawEditField.Position = [132 89 100 22];
 
+            app.UR3POS = [app.XEditField, app.YEditField, app.ZEditField,app.RollEditField,app.PitchEditField, app.YawEditField];
+
             %% Creating + Buttons UR3
 
             % Create Button
             app.Button = uibutton(app.XYZTab, 'push');
             app.Button.Position = [234 238 25 23];
+            app.Button.ButtonPushedFcn = @(src,event) AdjustCartasian(app,1,1);
             app.Button.Text = '+';
 
             % Create Button_2
             app.Button_2 = uibutton(app.XYZTab, 'push');
+            app.Button_2.ButtonPushedFcn = @(src,event) AdjustCartasian(app,2,1);
             app.Button_2.Position = [234 209 25 23];
             app.Button_2.Text = '+';
 
             % Create Button_3
             app.Button_3 = uibutton(app.XYZTab, 'push');
+            app.Button_3.ButtonPushedFcn = @(src,event) AdjustCartasian(app,3,1);
             app.Button_3.Position = [234 178 25 23];
             app.Button_3.Text = '+';
 
             % Create Button_4
             app.Button_4 = uibutton(app.XYZTab, 'push');
             app.Button_4.Position = [234 150 25 23];
+            app.Button_4.ButtonPushedFcn = @(src,event) AdjustCartasian(app,4,1);
             app.Button_4.Text = '+';
 
             % Create Button_5
             app.Button_5 = uibutton(app.XYZTab, 'push');
             app.Button_5.Position = [234 118 25 23];
+            app.Button_5.ButtonPushedFcn = @(src,event) AdjustCartasian(app,5,1);
             app.Button_5.Text = '+';
 
             % Create Button_6
             app.Button_6 = uibutton(app.XYZTab, 'push');
+            app.Button_6.ButtonPushedFcn = @(src,event) AdjustCartasian(app,6,1);
             app.Button_6.Position = [234 89 25 23];
             app.Button_6.Text = '+';
 
@@ -376,37 +399,43 @@ classdef NewGUITest
             % Create Button_7
             app.Button_7 = uibutton(app.XYZTab, 'push');
             app.Button_7.Position = [106 238 25 23];
+            app.Button_7.ButtonPushedFcn = @(src,event) AdjustCartasian(app,1,-1);
             app.Button_7.Text = '-';
 
             % Create Button_8
             app.Button_8 = uibutton(app.XYZTab, 'push');
             app.Button_8.Position = [106 209 25 23];
+            app.Button_8.ButtonPushedFcn = @(src,event) AdjustCartasian(app,2,-1);
             app.Button_8.Text = '-';
 
             % Create Button_9
             app.Button_9 = uibutton(app.XYZTab, 'push');
             app.Button_9.Position = [106 178 25 23];
+            app.Button_9.ButtonPushedFcn = @(src,event) AdjustCartasian(app,3,-1);
             app.Button_9.Text = '-';
 
             % Create Button_10
             app.Button_10 = uibutton(app.XYZTab, 'push');
             app.Button_10.Position = [106 150 25 23];
+            app.Button_10.ButtonPushedFcn = @(src,event) AdjustCartasian(app,4,-1);
             app.Button_10.Text = '-';
 
             % Create Button_11
             app.Button_11 = uibutton(app.XYZTab, 'push');
             app.Button_11.Position = [106 118 25 23];
+            app.Button_11.ButtonPushedFcn = @(src,event) AdjustCartasian(app,5,-1);
             app.Button_11.Text = '-';
 
             % Create Button_12
             app.Button_12 = uibutton(app.XYZTab, 'push');
             app.Button_12.Position = [106 89 25 23];
+            app.Button_12.ButtonPushedFcn = @(src,event) AdjustCartasian(app,6,-1);
             app.Button_12.Text = '-';
 
             % Create EnterButton
             app.EnterButton = uibutton(app.XYZTab, 'push');
             app.EnterButton.Position = [132 59 100 23];
-            app.ScanPackButton.ButtonPushedFcn = @(src,event) SendPos(app)
+            app.EnterButton.ButtonPushedFcn = @(src,event) SendPos(app)
             app.EnterButton.Text = 'Enter';
 
             %% Q Tab
@@ -424,6 +453,7 @@ classdef NewGUITest
             % Create Q1Slider
             app.Q1Slider = uislider(app.QTab);
             app.Q1Slider.Limits = [-6.28318530717959 6.28318530717959];
+            app.Q1Slider.ValueChangingFcn = @(src,event) SendJoints(app,app.Q1Slider);
             app.Q1Slider.Position = [79 261 180 3];
 
             % Create Q4SliderLabel
@@ -435,16 +465,19 @@ classdef NewGUITest
             % Create Q4Slider
             app.Q4Slider = uislider(app.QTab);
             app.Q4Slider.Limits = [-6.28319 6.28319];
+            app.Q4Slider.ValueChangingFcn = @(src,event) SendJoints(app,app.Q4Slider);
             app.Q4Slider.Position = [77 133 180 3];
 
             % Create Q5SliderLabel
             app.Q5SliderLabel = uilabel(app.QTab);
             app.Q5SliderLabel.HorizontalAlignment = 'right';
             app.Q5SliderLabel.Position = [21 68 25 22];
+            
             app.Q5SliderLabel.Text = 'Q5';
 
             % Create Q5Slider
             app.Q5Slider = uislider(app.QTab);
+            app.Q5Slider.ValueChangingFcn = @(src,event) SendJoints(app,app.Q5Slider);
             app.Q5Slider.Limits = [-6.28319 6.28319];
             app.Q5Slider.Position = [77 90 180 3];
 
@@ -456,6 +489,7 @@ classdef NewGUITest
 
             % Create Q2Slider
             app.Q2Slider = uislider(app.QTab);
+            app.Q2Slider.ValueChangingFcn = @(src,event) SendJoints(app,app.Q2Slider);
             app.Q2Slider.Limits = [-6.28319 6.28319];
             app.Q2Slider.Position = [77 220 180 3];
 
@@ -467,6 +501,7 @@ classdef NewGUITest
 
             % Create Q3Slider
             app.Q3Slider = uislider(app.QTab);
+            app.Q3Slider.ValueChangingFcn = @(src,event) SendJoints(app,app.Q3Slider);
             app.Q3Slider.Limits = [-6.28319 6.28319];
             app.Q3Slider.Position = [77 179 180 3];
 
@@ -479,6 +514,7 @@ classdef NewGUITest
             % Create Q6Slider
             app.Q6Slider = uislider(app.QTab);
             app.Q6Slider.Limits = [-6.28319 6.28319];
+            app.Q6Slider.ValueChangingFcn = @(src,event) SendJoints(app,app.Q6Slider);
             app.Q6Slider.Position = [77 43 180 3];
 
 
@@ -690,7 +726,7 @@ classdef NewGUITest
             % Create EnterButton_2
             app.EnterButton_2 = uibutton(app.XYZTab_2, 'push');
             app.EnterButton_2.Position = [132 59 100 23];
-            app.ScanPackButton.ButtonPushedFcn = @(src,event) SendPos(app)
+            app.EnterButton_2.ButtonPushedFcn = @(src,event) SendPos(app)
             app.EnterButton_2.Text = 'Enter';
 
             % Create QTab_2

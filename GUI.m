@@ -13,7 +13,7 @@ classdef GUI
     end
 
     methods
-        function self = GUI(System)
+        function self = GUI(System,Colliders)
 
             %Creation of UI elements
             bgcol = [255 255 255]/255;
@@ -89,10 +89,9 @@ classdef GUI
 
             function Start(src,event)
                 GUI.UpdateSystemStatus(self.SystemStatusUI,self.StatsBox,"Operating...",[0,0,200])
-                System.SystemRunning = false;
                 Items = SpawnItems(transl(-2,-0.25,0));
                 PlaceLocation = PlaceLocations(transl(-0.5,-0.25,0));
-                BensRMCR(System.DoBot,System.TM12,Items,PlaceLocation);
+                BensRMCR(System.UR3,System.TM12,Items,PlaceLocation,Colliders);
                 % - ADD - Function to being movement - ADD -
             end
 
@@ -159,6 +158,14 @@ classdef GUI
     end
     end
     methods (Static)
+
+        function EStop2()
+            %GUI.UpdateSystemStatus(self.SystemStatusUI,self.StatsBox,"Stopped",[255,0,0])
+            input('E-STOP pushed, hit enter to continue'); % -DELETE THIS LINE -
+            % - ADD - Function for EStop - ADD -
+
+            GUI.UpdateSystemStatus(self.SystemStatusUI,self.StatsBox,"Operating...",[0,0,200])
+        end
         
         %Full Load UI Here???
 

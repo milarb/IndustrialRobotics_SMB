@@ -1,0 +1,60 @@
+<deployment-project plugin="plugin.apptool" plugin-version="1.0">
+  <configuration build-checksum="851120137" file="C:\Users\Ben\Downloads\Wed\IndustrialRobotics_SMB-main\NewGUI.prj" location="C:\Users\Ben\Downloads\Wed\IndustrialRobotics_SMB-main" name="NewGUI" target="target.mlapps" target-name="Package App">
+    <param.appname>NewGUI</param.appname>
+    <param.authnamewatermark>test</param.authnamewatermark>
+    <param.email />
+    <param.company />
+    <param.icon />
+    <param.icons />
+    <param.summary>Something</param.summary>
+    <param.description>Something</param.description>
+    <param.screenshot>C:\Users\Ben\AppData\Local\Temp\tpcb0a57a0_2d60_4ddf_ac39_03b08201f718.png</param.screenshot>
+    <param.version>1.0</param.version>
+    <param.products.name />
+    <param.products.id />
+    <param.products.version />
+    <param.platforms />
+    <param.output>C:\Users\Ben\Downloads\UITest</param.output>
+    <param.guid>98344e8d-a246-4ba8-8bd7-2f2ee114e7db</param.guid>
+    <unset>
+      <param.email />
+      <param.company />
+      <param.icon />
+      <param.icons />
+      <param.version />
+      <param.products.name />
+      <param.products.id />
+      <param.products.version />
+      <param.platforms />
+    </unset>
+    <fileset.main>
+      <file>${PROJECT_ROOT}\NewGUI.mlapp</file>
+    </fileset.main>
+    <fileset.depfun />
+    <fileset.resources />
+    <fileset.package />
+    <build-deliverables>
+      <file location="C:\Users\Ben\Downloads" name="UITest" optional="false">C:\Users\Ben\Downloads\UITest</file>
+    </build-deliverables>
+    <workflow />
+    <matlab>
+      <root>C:\Program Files\MATLAB\R2023a</root>
+      <toolboxes />
+    </matlab>
+    <platform>
+      <unix>false</unix>
+      <mac>false</mac>
+      <windows>true</windows>
+      <win2k>false</win2k>
+      <winxp>false</winxp>
+      <vista>false</vista>
+      <linux>false</linux>
+      <solaris>false</solaris>
+      <osver>10.0</osver>
+      <os32>false</os32>
+      <os64>true</os64>
+      <arch>win64</arch>
+      <matlab>true</matlab>
+    </platform>
+  </configuration>
+</deployment-project>

@@ -1,7 +1,6 @@
 classdef NewGUITest
-  % Properties that correspond to app components
-    % Properties that correspond to app components
-    % Properties that correspond to app components
+
+    %GUI Properties
     properties (Access = public)
 
         UR3POS
@@ -133,7 +132,7 @@ classdef NewGUITest
         TestSystem
     end
 
-    % Callbacks that handle component events
+    %% Functions for GUI elements
     methods (Access = private)
 
         function TurnOn(app)
@@ -150,19 +149,32 @@ classdef NewGUITest
             % disp("HELLO WORLD");
         end
 
+%Estop callback function
         function EStop(app)
+            app.OFFLabel.BackgroundColor = [1 0 0];
+            app.OFFLabel.Text = "STOPPED"
             input('E-STOP pushed, hit enter to continue');
+            app.OFFLabel.BackgroundColor = [0 1 0];
+            app.OFFLabel.Text = "System Ready"
         end
 
+        %Calls Robot Movment script for packing items
         function ScanNPack(app)
+            app.OFFLabel.BackgroundColor = [0 0 1];
+            app.OFFLabel.Text = "Operating..."
             BensRMCR(app.System.UR3,app.System.TM12,app.System.Items,app.System.PlaceLocation,app.System.Colliders);
+            app.OFFLabel.BackgroundColor = [0 1 0];
+            app.OFFLabel.Text = "System Ready"
         end
 
         function ShowColliders(app)
             input('ShowColliders');
         end
 
+        %Sends robots to home joint state
         function HomeRobots(app)
+            app.OFFLabel.BackgroundColor = [0 0.5 0];
+            app.OFFLabel.Text = "Robots Going Home"
             Goalq = [0,0,0,0,0,0];
             Movement1 = jtraj(app.System.UR3.model.getpos,Goalq,100);
             Movement2 = jtraj(app.System.TM12.model.getpos,Goalq,100);
@@ -171,14 +183,21 @@ classdef NewGUITest
                 app.System.TM12.model.animate(Movement2(i,:));
                 drawnow()
             end
+            app.OFFLabel.BackgroundColor = [0 1 0];
+            app.OFFLabel.Text = "System Ready"
         end
 
+        %Callback function to send XYZRPY to robot 
         function SendPos(app,Robot)
-            values = app.UR3POS 
+            %UR3POS is array of ui edit fields
+           values = app.UR3POS
+           %Get values from array
             XYZ = [values(1).Value,values(2).Value,values(3).Value]
             RPY = [values(4).Value,values(5).Value,values(6).Value]
+            %convert values into se3
             trans = SE3(transl(XYZ) * trotz(RPY(3))* troty(RPY(2))* trotx(RPY(1)))
 
+            %Move robot
              Goalq = Robot.model.ikcon(trans);
                 Movement = jtraj(Robot.model.getpos,Goalq,100);
 
@@ -188,8 +207,9 @@ classdef NewGUITest
                 end
         end
 
+        % Callback function for incramental movement
         function AdjustCartasian(app,index,incrament,Robot)
-            switch index
+            switch index %Index = XYZRPY = 1-6
                 case 1
                     trans = SE3(transl(incrament,0,0))
                 case 2
@@ -207,8 +227,11 @@ classdef NewGUITest
                 Movement = jtraj(Robot.model.getpos,Goalq,2);
 
                 for i = 1:2
+                    shouldsStop = CollisionControl.RobotCollisionCheck(Robot,app.System.Colliders)
+                    if shouldsStop == false
                     Robot.model.animate(Movement(i,:));
                     drawnow()
+                    end
                 end
         end
 
@@ -216,17 +239,21 @@ classdef NewGUITest
             q = Robot.model.getpos;
             q(index) = Slider.Value;
 
-            Movement = jtraj(Robot.model.getpos,q,2);
+            Movement = jtraj(Robot.model.getpos,q,5);
 
-            for i = 1:2
-                Robot.model.animate(Movement(i,:));
-                drawnow()
+            for i = 1:5
+                shouldsStop = CollisionControl.RobotCollisionCheck(Robot,app.System.Colliders)
+                if shouldsStop == false
+                    Robot.model.animate(Movement(i,:));
+                    drawnow()
+                end
             end
             %input(num2str(Slider.Value));
         end
     end
 
-    % Component initialization
+
+%%
     methods (Access = private)
 
         % Create UIFigure and components
@@ -237,11 +264,7 @@ classdef NewGUITest
             app.UIFigure.Position = [0 0 400 678];
             app.UIFigure.Name = 'MATLAB App';
 
-            % Create ScanPackButton
-            app.ScanPackButton = uibutton(app.UIFigure, 'push');
-            app.ScanPackButton.Position = [22 487 100 23];
-            app.ScanPackButton.ButtonPushedFcn = @(src,event) ScanNPack(app)
-            app.ScanPackButton.Text = 'Scan & Pack';
+
 
             % Create Panel
             app.Panel = uipanel(app.UIFigure);
@@ -261,13 +284,19 @@ classdef NewGUITest
 
             % Create OFFLabel
             app.OFFLabel = uilabel(app.Panel);
-            app.OFFLabel.BackgroundColor = [0.651 0.651 0.651];
+            app.OFFLabel.BackgroundColor = [0 1 0];
             app.OFFLabel.HorizontalAlignment = 'center';
             app.OFFLabel.FontSize = 24;
             app.OFFLabel.FontWeight = 'bold';
             app.OFFLabel.FontColor = [1 1 1];
             app.OFFLabel.Position = [80 28 239 34];
-            app.OFFLabel.Text = 'OFF';
+            app.OFFLabel.Text = 'System Ready';
+
+            % Create ScanPackButton
+            app.ScanPackButton = uibutton(app.UIFigure, 'push');
+            app.ScanPackButton.Position = [22 487 100 23];
+            app.ScanPackButton.ButtonPushedFcn = @(src,event) ScanNPack(app)
+            app.ScanPackButton.Text = 'Scan & Pack';
 
             % Create ESTOPButton_2
             app.ESTOPButton_2 = uibutton(app.UIFigure, 'state');
@@ -294,6 +323,7 @@ classdef NewGUITest
 
             % Create Image_2
             app.Image_2 = uiimage(app.UR3Tab);
+            app.Image_2.ImageSource = "UR3.png";
             app.Image_2.Position = [16 310 94 107];
 
             % Create UR3Label
@@ -607,6 +637,7 @@ classdef NewGUITest
 
             % Create Image_3
             app.Image_3 = uiimage(app.TM12Tab);
+            app.Image_3.ImageSource = "TM12.png"
             app.Image_3.Position = [16 310 94 107];
 
             % Create TM12Label
@@ -909,10 +940,10 @@ classdef NewGUITest
             app.HomeRobotsButton.Text = 'Home Robots';
 
             % Create ShowCollidersButton_2
-            app.ShowCollidersButton_2 = uibutton(app.UIFigure, 'push');
-            app.ShowCollidersButton_2.Position = [144 487 100 23];
-            app.ShowCollidersButton_2.ButtonPushedFcn = @(src,event) ShowColliders(app)
-            app.ShowCollidersButton_2.Text = 'Show Colliders';
+            % app.ShowCollidersButton_2 = uibutton(app.UIFigure, 'push');
+            % app.ShowCollidersButton_2.Position = [144 487 100 23];
+            % app.ShowCollidersButton_2.ButtonPushedFcn = @(src,event) ShowColliders(app)
+            % app.ShowCollidersButton_2.Text = 'Show Colliders';
             
 
             % Show the figure after all components are created

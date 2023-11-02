@@ -15,6 +15,7 @@ classdef CollisionControl
 
     methods
         function self = CollisionControl(System)
+            %Creates and returns Collision meshes
             self.TablePoints = CollisionControl.CreateMeshPlain(-1.3,0,0.7,0.3,true);
             self.BarrierPoints = CollisionControl.CreateMeshPlain(1.5,0,1,0.3,false);
         end
@@ -23,30 +24,35 @@ classdef CollisionControl
 
     %%
     methods (Static)
-        function RobotCollisionCheck(Robot,Colliders)
+        function stopRobot = RobotCollisionCheck(Robot,Colliders)
             pos = Robot.model.fkine(Robot.model.getpos).t;
+            %Create ellips at robot EndEffector
             [ellip,elippoints] = CollisionControl.CreateEllipsoid(pos(1),pos(2),pos(3),Colliders.SafeZoneSize);
             [ellip2,elippoints2] = CollisionControl.CreateEllipsoid(pos(1),pos(2),pos(3),Colliders.CollsionSize);
 
+            %Check for collisions
             if CollisionControl.CollisionCheck(Colliders.TablePoints,elippoints2) == true
                 disp("HIT HIT HIT");
+                stopRobot = true;
             else
                 if CollisionControl.CollisionAvoidanceCheck(Colliders.TablePoints,elippoints) == true
                     disp("WARNING WARNING");
+                    stopRobot = true;
                 else
                     disp("NO impact");
+                    stopRobot = false;
                 end
             end
         end
 
         %Check for incoming collision
         function status = CollisionAvoidanceCheck(mesh,ellips)
-            status = CollisionControl.CheckForCollision(mesh,ellips,[0.08,0.08,0.08]);
+            status = CollisionControl.CheckForCollision(mesh,ellips,[0.06,0.06,0.06]);
         end
 
         %check for collision
         function status = CollisionCheck(mesh,ellips)
-            status = CollisionControl.CheckForCollision(mesh,ellips,[0.1,0.1,0.1]/2);
+            status = CollisionControl.CheckForCollision(mesh,ellips,[0.06,0.06,0.06]/2);
         end
 
 

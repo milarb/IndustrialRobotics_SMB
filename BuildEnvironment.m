@@ -10,8 +10,8 @@ classdef BuildEnvironment < handle
         function self = BuildEnvironment()
              EStop = PlaceObject('emergencyStopWallMounted.ply',[-1.5,-0.3,0.7]);
              FireEx = PlaceObject('fireExtinguisher.ply',[-2.5,0,0]);
-             Basket = PlaceObject('Basket.ply',[-0.45,0,0.65]);
-             Cart = PlaceObject('Cart2.ply',[0.2,0.8,0.0]);
+             %Basket = PlaceObject('Basket.ply',[-0.45,0,0.65]);
+             Cart = PlaceObject('Cart2.ply',[0.2,0.6,0.0]);
 
              P1 = PlaceObject('Person.ply',[-6.7,2.3,0]);
 

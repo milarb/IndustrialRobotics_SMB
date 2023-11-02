@@ -28,7 +28,7 @@ for i=1:steps
     x(2,i) = (1-s(i))*-0.3 + s(i)*0.3; % Points in y
     x(3,i) = 0; % Points in z   
     theta(1,i) = 0;                 % Roll angle 
-    theta(2,i) = 0; %5*pi/9;            % Pitch angle
+    theta(2,i) = pi;            % Pitch angle
     theta(3,i) = 0;                 % Yaw angle
 end
  

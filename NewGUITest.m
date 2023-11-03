@@ -8,6 +8,9 @@ classdef NewGUITest
         QTM12Lables
         QDOLables
 
+        DOSliders
+        TMSliders
+
         PosTM12Lables
         PosDOLables
 
@@ -154,22 +157,21 @@ classdef NewGUITest
             % disp("HELLO WORLD");
         end
 
-%Estop callback function
-        function EStop(app)
-            app.OFFLabel.BackgroundColor = [1 0 0];
-            app.OFFLabel.Text = "STOPPED"
-            input('E-STOP pushed, hit enter to continue');
-            app.OFFLabel.BackgroundColor = [0 1 0];
-            app.OFFLabel.Text = "System Ready"
-        end
+        %Estop callback function
+        % function EStop(app)
+        %     app.OFFLabel.BackgroundColor = [1 0 0];
+        %     app.OFFLabel.Text = "STOPPED";
+        %     app.OFFLabel.BackgroundColor = [0 1 0];
+        %     app.OFFLabel.Text = "System Ready";
+        % end
 
         %Calls Robot Movment script for packing items
         function ScanNPack(app)
-            app.OFFLabel.BackgroundColor = [0 0 1];
-            app.OFFLabel.Text = "Operating..."
-            BensRMCR(app.System.UR3,app.System.TM12,app.System.Items,app.System.PlaceLocation,app.System.Colliders);
-            app.OFFLabel.BackgroundColor = [0 1 0];
-            app.OFFLabel.Text = "System Ready"
+            % app.OFFLabel.BackgroundColor = [0 0 1];
+            % app.OFFLabel.Text = "Operating...";
+            BensRMCR(app.System.UR3,app.System.TM12,app.System.Items,app.System.PlaceLocation,app.System.Colliders,app);
+            % app.OFFLabel.BackgroundColor = [0 1 0];
+            % app.OFFLabel.Text = "System Ready";
         end
 
         function ShowColliders(app)
@@ -179,37 +181,50 @@ classdef NewGUITest
         %Sends robots to home joint state
         function HomeRobots(app)
             app.OFFLabel.BackgroundColor = [0 0.5 0];
-            app.OFFLabel.Text = "Robots Going Home"
+            app.OFFLabel.Text = "Robots Going Home";
             Goalq = [0,0,0,0,0,0];
-            Movement1 = jtraj(app.System.UR3.model.getpos,Goalq,100);
-            Movement2 = jtraj(app.System.TM12.model.getpos,Goalq,100);
-            for i = 1:100
+            Movement1 = jtraj(app.System.UR3.model.getpos,Goalq,75);
+            Movement2 = jtraj(app.System.TM12.model.getpos,Goalq,75);
+            for i = 1:75
                 app.System.UR3.model.animate(Movement1(i,:));
+                UpdateDoLabels(app,app.System.UR3,Movement1);
                 app.System.TM12.model.animate(Movement2(i,:));
+                UpdateTMLabels(app,app.System.TM12,Movement2)
                 drawnow()
             end
             app.OFFLabel.BackgroundColor = [0 1 0];
-            app.OFFLabel.Text = "System Ready"
+            app.OFFLabel.Text = "System Ready";
         end
 
-        %Callback function to send XYZRPY to robot 
+        %Callback function to send XYZRPY to robot
         function SendPos(app,Robot)
             %UR3POS is array of ui edit fields
-           values = app.UR3POS
-           %Get values from array
+            values = app.UR3POS
+            %Get values from array
             XYZ = [values(1).Value,values(2).Value,values(3).Value]
             RPY = [values(4).Value,values(5).Value,values(6).Value]
             %convert values into se3
             trans = SE3(transl(XYZ) * trotz(RPY(3))* troty(RPY(2))* trotx(RPY(1)))
 
             %Move robot
-             Goalq = Robot.model.ikcon(trans);
-                Movement = jtraj(Robot.model.getpos,Goalq,100);
+            Goalq = Robot.model.ikcon(trans);
+            Movement = jtraj(Robot.model.getpos,Goalq,100);
 
-                for i = 1:100
+            for i = 1:100
+                shouldsStop = CollisionControl.RobotCollisionCheck(Robot,app.System.Colliders)
+                if shouldsStop == false
                     Robot.model.animate(Movement(i,:));
+                    try
+                        if Robot.name == 'UR320231103T142801831'
+                            UpdateDoLabels(app,Robot,Movement);
+
+                        end
+                    catch
+                        UpdateTMLabels(app,Robot,Movement)
+                    end
                     drawnow()
                 end
+            end
         end
 
         % Callback function for incramental movement
@@ -217,36 +232,58 @@ classdef NewGUITest
             pos = Robot.model.fkine(Robot.model.getpos)
             switch index %Index = XYZRPY = 1-6
                 case 1
-                    trans = pos  * SE3(transl(incrament,0,0))
+                    trans = pos  * SE3(transl(incrament,0,0));
                 case 2
-                    trans = pos* SE3(transl(0,incrament,0))
+                    trans = pos* SE3(transl(0,incrament,0));
                 case 3
-                    trans = pos *SE3(transl(0,0,incrament))
+                    trans = pos *SE3(transl(0,0,incrament));
                 case 4
-                    trans = pos *SE3(trotx(incrament))
+                    trans = pos *SE3(trotx(incrament));
                 case 5
-                    trans = pos*SE3(troty(incrament))
+                    trans = pos*SE3(troty(incrament));
                 case 6
-                    trans = pos*SE3(trotz(incrament))
+                    trans = pos*SE3(trotz(incrament));
             end
             Goalq = Robot.model.ikcon(trans);
-                Movement = jtraj(Robot.model.getpos,Goalq,2);
+            Movement = jtraj(Robot.model.getpos,Goalq,2);
 
-                for i = 1:2
-                    shouldsStop = CollisionControl.RobotCollisionCheck(Robot,app.System.Colliders)
-                    if shouldsStop == false
+            for i = 1:2
+                shouldsStop = CollisionControl.RobotCollisionCheck(Robot,app.System.Colliders)
+                if shouldsStop == false
                     Robot.model.animate(Movement(i,:));
-                    for z = 1:6
-                        app.QDOLables(z).Text = num2str(Movement(2,z))
-                        pos = Robot.model.fkine(Robot.model.getpos).t
-                        if z < 4
-                        app.PosDOLables(z).Text = num2str(pos(z,:))
-                         app.PosDOLables(z).Text = "HELOO"
-                        end
+                    try
+                    if Robot.name == 'UR320231103T142801831'
+                        UpdateDoLabels(app,Robot,Movement);
+                       
+                    end
+                    catch
+                        UpdateTMLabels(app,Robot,Movement)
                     end
                     drawnow()
-                    end
                 end
+            end
+        end
+
+        function UpdateDoLabels(app,Robot,traj)
+            for z = 1:6
+                app.QDOLables(z).Text = num2str(traj(2,z));
+                app.DOSliders(z).Value = traj(2,z);
+                pos = Robot.model.fkine(Robot.model.getpos).t;
+                if z < 4
+                    app.PosDOLables(z).Text = num2str(pos(z,:));
+                end
+            end
+        end
+
+        function UpdateTMLabels(app,Robot,traj)
+            for z = 1:6
+                app.QTM12Lables(z).Text = num2str(traj(2,z));
+                app.TMSliders(z).Value = traj(2,z);
+                pos = Robot.model.fkine(Robot.model.getpos).t;
+                if z < 4
+                    app.PosTM12Lables(z).Text = num2str(pos(z,:));
+                end
+            end
         end
 
         function SendJoints(app,Slider,index,Robot)
@@ -259,6 +296,14 @@ classdef NewGUITest
                 shouldsStop = CollisionControl.RobotCollisionCheck(Robot,app.System.Colliders)
                 if shouldsStop == false
                     Robot.model.animate(Movement(i,:));
+                     try
+                    if Robot.name == 'UR320231103T142801831'
+                        UpdateDoLabels(app,Robot,Movement);
+                       
+                    end
+                    catch
+                        UpdateTMLabels(app,Robot,Movement)
+                    end
                     drawnow()
                 end
             end
@@ -267,7 +312,7 @@ classdef NewGUITest
     end
 
 
-%%
+    %%
     methods (Access = private)
 
         % Create UIFigure and components
@@ -286,6 +331,8 @@ classdef NewGUITest
             app.Panel.BackgroundColor = [0.902 0.902 0.902];
             app.Panel.Position = [1 584 402 114];
 
+            
+
             % Create CoGrocerLabel
             app.CoGrocerLabel = uilabel(app.Panel);
             app.CoGrocerLabel.HorizontalAlignment = 'center';
@@ -296,7 +343,7 @@ classdef NewGUITest
             app.CoGrocerLabel.Position = [114 55 173 59];
             app.CoGrocerLabel.Text = 'Co-Grocer';
 
-            % Create OFFLabel
+            %Create OFFLabel
             app.OFFLabel = uilabel(app.Panel);
             app.OFFLabel.BackgroundColor = [0 1 0];
             app.OFFLabel.HorizontalAlignment = 'center';
@@ -312,15 +359,15 @@ classdef NewGUITest
             app.ScanPackButton.ButtonPushedFcn = @(src,event) ScanNPack(app)
             app.ScanPackButton.Text = 'Scan & Pack';
 
-            % Create ESTOPButton_2
-            app.ESTOPButton_2 = uibutton(app.UIFigure, 'state');
-            app.ESTOPButton_2.Text = 'E-STOP';
-            % app.ESTOPButton_2.ButtonPushedFcn = @(src,event) EStop(app)
-            app.ESTOPButton_2.BackgroundColor = [1 0 0];
-            app.ESTOPButton_2.FontName = 'BolsterBold';
-            app.ESTOPButton_2.FontSize = 24;
-            app.ESTOPButton_2.FontColor = [1 1 1];
-            app.ESTOPButton_2.Position = [122 534 143 40];
+            % % Create ESTOPButton_2
+            % app.ESTOPButton_2 = uibutton(app.UIFigure, 'state');
+            % app.ESTOPButton_2.Text = 'E-STOP';
+            % % app.ESTOPButton_2.ButtonPushedFcn = @(src,event) EStop(app)
+            % app.ESTOPButton_2.BackgroundColor = [1 0 0];
+            % app.ESTOPButton_2.FontName = 'BolsterBold';
+            % app.ESTOPButton_2.FontSize = 24;
+            % app.ESTOPButton_2.FontColor = [1 1 1];
+            % app.ESTOPButton_2.Position = [122 534 143 40];
 
             % Create Switch
             app.Switch = uiswitch(app.UIFigure, 'rocker');
@@ -351,6 +398,57 @@ classdef NewGUITest
             % Create TabGroup2
             app.TabGroup2 = uitabgroup(app.UR3Tab);
             app.TabGroup2.Position = [14 14 356 297];
+
+            %% Q values lable
+
+            %% Q Tab
+            % Create QTab
+            app.QTab = uitab(app.TabGroup2);
+            app.QTab.Title = 'Q';
+            % Create Label
+                        % Create TM12Tab
+            app.TM12Tab = uitab(app.TabGroup);
+            app.TM12Tab.Title = 'TM12';
+
+                        % Create TabGroup2_2
+            app.TabGroup2_2 = uitabgroup(app.TM12Tab);
+            app.TabGroup2_2.Position = [14 14 356 297];
+
+            app.Label = uilabel(app.QTab);
+            app.Label.Position = [286 251 34 22];
+
+                    % Create XYZTab_2
+            app.XYZTab_2 = uitab(app.TabGroup2_2);
+            app.XYZTab_2.Title = 'XYZ';
+
+            % Create Label_2
+            app.Label_2 = uilabel(app.QTab);
+            app.Label_2.Position = [286 210 34 22];
+
+            % Create Label_3
+            app.Label_3 = uilabel(app.QTab);
+            app.Label_3.Position = [286 169 34 22];
+
+            % Create Label_4
+            app.Label_4 = uilabel(app.QTab);
+            app.Label_4.Position = [286 121 34 22];
+
+            % Create Label_5
+            app.Label_5 = uilabel(app.QTab);
+            app.Label_5.Position = [286 80 34 22];
+
+            % Create Label_6
+            app.Label_6 = uilabel(app.QTab);
+            app.Label_6.Position = [286 33 34 22];
+
+            app.QDOLables = [ app.Label, app.Label_2, app.Label_3, app.Label_4, app.Label_5, app.Label_6]
+
+
+            % Create StatusLamp
+            app.StatusLamp = uilamp(app.UR3Tab);
+            app.StatusLamp.Position = [301 332 62 62];
+
+
 
             %% Creating XYZ Buttons
 
@@ -420,43 +518,43 @@ classdef NewGUITest
 
             app.UR3POS = [app.XEditField, app.YEditField, app.ZEditField,app.RollEditField,app.PitchEditField, app.YawEditField];
 
-            %% Creating + Buttons UR3
-
-            % Create Button
-            app.Button = uibutton(app.XYZTab, 'push');
-            app.Button.Position = [234 238 25 23];
-            app.Button.ButtonPushedFcn = @(src,event) AdjustCartasian(app,1,0.05,app.System.UR3);
-            app.Button.Text = '+';
-
-            % Create Button_2
-            app.Button_2 = uibutton(app.XYZTab, 'push');
-            app.Button_2.ButtonPushedFcn = @(src,event) AdjustCartasian(app,2,0.05,app.System.UR3);
-            app.Button_2.Position = [234 209 25 23];
-            app.Button_2.Text = '+';
-
-            % Create Button_3
-            app.Button_3 = uibutton(app.XYZTab, 'push');
-            app.Button_3.ButtonPushedFcn = @(src,event) AdjustCartasian(app,3,0.05,app.System.UR3);
-            app.Button_3.Position = [234 178 25 23];
-            app.Button_3.Text = '+';
-
-            % Create Button_4
-            app.Button_4 = uibutton(app.XYZTab, 'push');
-            app.Button_4.Position = [234 150 25 23];
-            app.Button_4.ButtonPushedFcn = @(src,event) AdjustCartasian(app,4,0.05,app.System.UR3);
-            app.Button_4.Text = '+';
-
-            % Create Button_5
-            app.Button_5 = uibutton(app.XYZTab, 'push');
-            app.Button_5.Position = [234 118 25 23];
-            app.Button_5.ButtonPushedFcn = @(src,event) AdjustCartasian(app,5,0.05,app.System.UR3);
-            app.Button_5.Text = '+';
-
-            % Create Button_6
-            app.Button_6 = uibutton(app.XYZTab, 'push');
-            app.Button_6.ButtonPushedFcn = @(src,event) AdjustCartasian(app,6,0.05,app.System.UR3);
-            app.Button_6.Position = [234 89 25 23];
-            app.Button_6.Text = '+';
+            % %% Creating + Buttons UR3
+            %
+            % % Create Button
+            % app.Button = uibutton(app.XYZTab, 'push');
+            % app.Button.Position = [234 238 25 23];
+            % app.Button.ButtonPushedFcn = @(src,event) AdjustCartasian(app,1,0.05,app.System.UR3);
+            % app.Button.Text = '+';
+            %
+            % % Create Button_2
+            % app.Button_2 = uibutton(app.XYZTab, 'push');
+            % app.Button_2.ButtonPushedFcn = @(src,event) AdjustCartasian(app,2,0.05,app.System.UR3);
+            % app.Button_2.Position = [234 209 25 23];
+            % app.Button_2.Text = '+';
+            %
+            % % Create Button_3
+            % app.Button_3 = uibutton(app.XYZTab, 'push');
+            % app.Button_3.ButtonPushedFcn = @(src,event) AdjustCartasian(app,3,0.05,app.System.UR3);
+            % app.Button_3.Position = [234 178 25 23];
+            % app.Button_3.Text = '+';
+            %
+            % % Create Button_4
+            % app.Button_4 = uibutton(app.XYZTab, 'push');
+            % app.Button_4.Position = [234 150 25 23];
+            % app.Button_4.ButtonPushedFcn = @(src,event) AdjustCartasian(app,4,0.05,app.System.UR3);
+            % app.Button_4.Text = '+';
+            %
+            % % Create Button_5
+            % app.Button_5 = uibutton(app.XYZTab, 'push');
+            % app.Button_5.Position = [234 118 25 23];
+            % app.Button_5.ButtonPushedFcn = @(src,event) AdjustCartasian(app,5,0.05,app.System.UR3);
+            % app.Button_5.Text = '+';
+            %
+            % % Create Button_6
+            % app.Button_6 = uibutton(app.XYZTab, 'push');
+            % app.Button_6.ButtonPushedFcn = @(src,event) AdjustCartasian(app,6,0.05,app.System.UR3);
+            % app.Button_6.Position = [234 89 25 23];
+            % app.Button_6.Text = '+';
 
 
             %% Lables for XYZ for UR3
@@ -464,34 +562,66 @@ classdef NewGUITest
             % Create Label2
             app.Label2 = uilabel(app.XYZTab);
             app.Label2.Position = [281 241 41 22];
-            app.Label2.Text = 'Label2';
+            app.Label2.Text = '0';
 
             % Create Label2_2
             app.Label2_2 = uilabel(app.XYZTab);
             app.Label2_2.Position = [281 209 41 22];
-            app.Label2_2.Text = 'Label2';
+            app.Label2_2.Text = '0';
 
             % Create Label2_3
             app.Label2_3 = uilabel(app.XYZTab);
             app.Label2_3.Position = [281 178 41 22];
-            app.Label2_3.Text = 'Label2';
+            app.Label2_3.Text = '0';
 
             % Create Label2_4
             app.Label2_4 = uilabel(app.XYZTab);
             app.Label2_4.Position = [281 150 41 22];
-            app.Label2_4.Text = 'Label2';
+            app.Label2_4.Text = '';
 
             % Create Label2_5
             app.Label2_5 = uilabel(app.XYZTab);
             app.Label2_5.Position = [282 120 41 22];
-            app.Label2_5.Text = 'Label2';
+            app.Label2_5.Text = '';
 
             % Create Label2_6
             app.Label2_6 = uilabel(app.XYZTab);
             app.Label2_6.Position = [281 91 41 22];
-            app.Label2_6.Text = 'Label2';
+            app.Label2_6.Text = '';
 
             app.PosDOLables = [ app.Label2,app.Label2_2,app.Label2_3,app.Label2_4,app.Label2_5,app.Label2_6]
+
+            % Create Label2_7
+            app.Label2_7 = uilabel(app.XYZTab_2);
+            app.Label2_7.Position = [281 241 41 22];
+            app.Label2_7.Text = '0';
+
+            % Create Label2_8
+            app.Label2_8 = uilabel(app.XYZTab_2);
+            app.Label2_8.Position = [281 209 41 22];
+            app.Label2_8.Text = '0';
+
+            % Create Label2_9
+            app.Label2_9 = uilabel(app.XYZTab_2);
+            app.Label2_9.Position = [281 178 41 22];
+            app.Label2_9.Text = '0';
+
+            % Create Label2_10
+            app.Label2_10 = uilabel(app.XYZTab_2);
+            app.Label2_10.Position = [281 150 41 22];
+            app.Label2_10.Text = '';
+
+            % Create Label2_11
+            app.Label2_11 = uilabel(app.XYZTab_2);
+            app.Label2_11.Position = [282 120 41 22];
+            app.Label2_11.Text = '';
+
+            % Create Label2_12
+            app.Label2_12 = uilabel(app.XYZTab_2);
+            app.Label2_12.Position = [281 91 41 22];
+            app.Label2_12.Text = '';
+
+            app.PosTM12Lables = [app.Label2_7,app.Label2_8,app.Label2_9,app.Label2_10,app.Label2_11,app.Label2_12]
 
             %% Creating - Buttons for UR3
             % Create Button_7
@@ -536,10 +666,7 @@ classdef NewGUITest
             app.EnterButton.ButtonPushedFcn = @(src,event) SendPos(app,app.System.UR3)
             app.EnterButton.Text = 'Enter';
 
-            %% Q Tab
-            % Create QTab
-            app.QTab = uitab(app.TabGroup2);
-            app.QTab.Title = 'Q';
+
 
             %% Q Sliders for UR3
             % Create Q1SliderLabel
@@ -570,7 +697,7 @@ classdef NewGUITest
             app.Q5SliderLabel = uilabel(app.QTab);
             app.Q5SliderLabel.HorizontalAlignment = 'right';
             app.Q5SliderLabel.Position = [21 68 25 22];
-            
+
             app.Q5SliderLabel.Text = 'Q5';
 
             % Create Q5Slider
@@ -615,43 +742,11 @@ classdef NewGUITest
             app.Q6Slider.ValueChangingFcn = @(src,event) SendJoints(app,app.Q6Slider,6,app.System.UR3);
             app.Q6Slider.Position = [77 43 180 3];
 
+            app.DOSliders = [app.Q1Slider,app.Q2Slider,app.Q3Slider,app.Q4Slider,app.Q5Slider,app.Q6Slider]
 
-            %% Q values lable
-            % Create Label
-            app.Label = uilabel(app.QTab);
-            app.Label.Position = [286 251 34 22];
-
-            % Create Label_2
-            app.Label_2 = uilabel(app.QTab);
-            app.Label_2.Position = [286 210 34 22];
-
-            % Create Label_3
-            app.Label_3 = uilabel(app.QTab);
-            app.Label_3.Position = [286 169 34 22];
-
-            % Create Label_4
-            app.Label_4 = uilabel(app.QTab);
-            app.Label_4.Position = [286 121 34 22];
-
-            % Create Label_5
-            app.Label_5 = uilabel(app.QTab);
-            app.Label_5.Position = [286 80 34 22];
-
-            % Create Label_6
-            app.Label_6 = uilabel(app.QTab);
-            app.Label_6.Position = [286 33 34 22];
-
-            app.QDOLables = [ app.Label, app.Label_2, app.Label_3, app.Label_4, app.Label_5, app.Label_6]
-
-
-            % Create StatusLamp
-            app.StatusLamp = uilamp(app.UR3Tab);
-            app.StatusLamp.Position = [301 332 62 62];
 
             %% TM12
-            % Create TM12Tab
-            app.TM12Tab = uitab(app.TabGroup);
-            app.TM12Tab.Title = 'TM12';
+
 
             % Create Image_3
             app.Image_3 = uiimage(app.TM12Tab);
@@ -666,13 +761,9 @@ classdef NewGUITest
             app.TM12Label.Position = [166 340 77 47];
             app.TM12Label.Text = 'TM12';
 
-            % Create TabGroup2_2
-            app.TabGroup2_2 = uitabgroup(app.TM12Tab);
-            app.TabGroup2_2.Position = [14 14 356 297];
 
-            % Create XYZTab_2
-            app.XYZTab_2 = uitab(app.TabGroup2_2);
-            app.XYZTab_2.Title = 'XYZ';
+
+    
 
             % Create XEditField_2Label
             app.XEditField_2Label = uilabel(app.XYZTab_2);
@@ -770,35 +861,7 @@ classdef NewGUITest
             app.Button_18.ButtonPushedFcn = @(src,event) AdjustCartasian(app,6,0.1,app.System.TM12);
             app.Button_18.Text = '+';
 
-            % Create Label2_7
-            app.Label2_7 = uilabel(app.XYZTab_2);
-            app.Label2_7.Position = [281 241 41 22];
-            app.Label2_7.Text = 'Label2';
 
-            % Create Label2_8
-            app.Label2_8 = uilabel(app.XYZTab_2);
-            app.Label2_8.Position = [281 209 41 22];
-            app.Label2_8.Text = 'Label2';
-
-            % Create Label2_9
-            app.Label2_9 = uilabel(app.XYZTab_2);
-            app.Label2_9.Position = [281 178 41 22];
-            app.Label2_9.Text = 'Label2';
-
-            % Create Label2_10
-            app.Label2_10 = uilabel(app.XYZTab_2);
-            app.Label2_10.Position = [281 150 41 22];
-            app.Label2_10.Text = 'Label2';
-
-            % Create Label2_11
-            app.Label2_11 = uilabel(app.XYZTab_2);
-            app.Label2_11.Position = [282 120 41 22];
-            app.Label2_11.Text = 'Label2';
-
-            % Create Label2_12
-            app.Label2_12 = uilabel(app.XYZTab_2);
-            app.Label2_12.Position = [281 91 41 22];
-            app.Label2_12.Text = 'Label2';
 
             % Create Button_19
             app.Button_19 = uibutton(app.XYZTab_2, 'push');
@@ -918,6 +981,9 @@ classdef NewGUITest
             app.Q6Slider_2.ValueChangingFcn = @(src,event) SendJoints(app,app.Q6Slider_2,6,app.System.TM12);
             app.Q6Slider_2.Position = [77 43 150 3];
 
+            app.TMSliders = [app.Q1Slider_2,app.Q2Slider_2,app.Q3Slider_2,app.Q4Slider_2,app.Q5Slider_2,app.Q6Slider_2]
+
+
             % Create Label_7
             app.Label_7 = uilabel(app.QTab_2);
             app.Label_7.Position = [286 251 34 22];
@@ -946,6 +1012,8 @@ classdef NewGUITest
             app.StatusLamp_2 = uilamp(app.TM12Tab);
             app.StatusLamp_2.Position = [301 332 62 62];
 
+            app.QTM12Lables = [app.Label_7,app.Label_8,app.Label_9,app.Label_10,app.Label_11,app.Label_12]
+
             % Create LogTab
             app.LogTab = uitab(app.TabGroup);
             app.LogTab.Title = 'Log';
@@ -962,7 +1030,45 @@ classdef NewGUITest
             % app.ShowCollidersButton_2.Position = [144 487 100 23];
             % app.ShowCollidersButton_2.ButtonPushedFcn = @(src,event) ShowColliders(app)
             % app.ShowCollidersButton_2.Text = 'Show Colliders';
-            
+
+            %% Creating + Buttons UR3
+
+            % Create Button
+            app.Button = uibutton(app.XYZTab, 'push');
+            app.Button.Position = [234 238 25 23];
+            app.Button.ButtonPushedFcn = @(src,event) AdjustCartasian(app,1,0.05,app.System.UR3);
+            app.Button.Text = '+';
+
+            % Create Button_2
+            app.Button_2 = uibutton(app.XYZTab, 'push');
+            app.Button_2.ButtonPushedFcn = @(src,event) AdjustCartasian(app,2,0.05,app.System.UR3);
+            app.Button_2.Position = [234 209 25 23];
+            app.Button_2.Text = '+';
+
+            % Create Button_3
+            app.Button_3 = uibutton(app.XYZTab, 'push');
+            app.Button_3.ButtonPushedFcn = @(src,event) AdjustCartasian(app,3,0.05,app.System.UR3);
+            app.Button_3.Position = [234 178 25 23];
+            app.Button_3.Text = '+';
+
+            % Create Button_4
+            app.Button_4 = uibutton(app.XYZTab, 'push');
+            app.Button_4.Position = [234 150 25 23];
+            app.Button_4.ButtonPushedFcn = @(src,event) AdjustCartasian(app,4,0.05,app.System.UR3);
+            app.Button_4.Text = '+';
+
+            % Create Button_5
+            app.Button_5 = uibutton(app.XYZTab, 'push');
+            app.Button_5.Position = [234 118 25 23];
+            app.Button_5.ButtonPushedFcn = @(src,event) AdjustCartasian(app,5,0.05,app.System.UR3);
+            app.Button_5.Text = '+';
+
+            % Create Button_6
+            app.Button_6 = uibutton(app.XYZTab, 'push');
+            app.Button_6.ButtonPushedFcn = @(src,event) AdjustCartasian(app,6,0.05,app.System.UR3);
+            app.Button_6.Position = [234 89 25 23];
+            app.Button_6.Text = '+';
+
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

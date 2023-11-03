@@ -32,11 +32,27 @@ classdef CollisionControl
 
             %Check for collisions
             if CollisionControl.CollisionCheck(Colliders.TablePoints,elippoints2) == true
+                try delete(collisionprompt)
+                end
+                collisionprompt = uifigure;
+                collisionprompt.Position(3:4) = [500 150];
+                textbox = uilabel(collisionprompt)
+                textbox.Text = "Robot Collision! Reset Robot"
+                textbox.FontSize = 24;
+                textbox.Position(2:4) = [0,400 150];
                 disp("HIT HIT HIT");
                 stopRobot = true;
             else
                 if CollisionControl.CollisionAvoidanceCheck(Colliders.TablePoints,elippoints) == true
                     disp("WARNING WARNING");
+                    try delete(collisionprompt)
+                    end
+                    collisionprompt = uifigure;
+                    collisionprompt.Position(3:4) = [500 150];
+                    textbox = uilabel(collisionprompt)
+                    textbox.Text = "Collision Warning! Home Robot"
+                    textbox.FontSize = 24;
+                    textbox.Position(2:4) = [0,400 150];
                     stopRobot = true;
                 else
                     disp("NO impact");
@@ -92,14 +108,14 @@ classdef CollisionControl
             X = repmat(LengthX,sizeMat(1),sizeMat(2));
 
             if isFlat == true
-                CubeMesh = surf(Z,Y,X);
+                %CubeMesh = surf(Z,Y,X);
                 cubePoints = [Z(:),Y(:),X(:)];
             else
-                CubeMesh = surf(Z-2.8,X-1.3,Y+1.3);
+                %CubeMesh = surf(Z-2.8,X-1.3,Y+1.3);
                 cubePoints = [Z(:)-2.8,X(:)-1.3,Y(:)+1.3];
             end
 
-            cube_h = plot3(cubePoints(:,1),cubePoints(:,2),cubePoints(:,3),'b.');
+            %cube_h = plot3(cubePoints(:,1),cubePoints(:,2),cubePoints(:,3),'b.');
             CubePoints = cubePoints;
         end
 

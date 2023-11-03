@@ -5,6 +5,11 @@ classdef NewGUITest
 
         UR3POS
         System
+        QTM12Lables
+        QDOLables
+
+        PosTM12Lables
+        PosDOLables
 
         UIFigure               matlab.ui.Figure
         ShowCollidersButton_2  matlab.ui.control.Button
@@ -209,19 +214,20 @@ classdef NewGUITest
 
         % Callback function for incramental movement
         function AdjustCartasian(app,index,incrament,Robot)
+            pos = Robot.model.fkine(Robot.model.getpos)
             switch index %Index = XYZRPY = 1-6
                 case 1
-                    trans = SE3(transl(incrament,0,0))
+                    trans = pos  * SE3(transl(incrament,0,0))
                 case 2
-                    trans = SE3(transl(0,incrament,0))
+                    trans = pos* SE3(transl(0,incrament,0))
                 case 3
-                    trans = SE3(transl(0,0,incrament))
+                    trans = pos *SE3(transl(0,0,incrament))
                 case 4
-                    trans = SE3(trotx(incrament))
+                    trans = pos *SE3(trotx(incrament))
                 case 5
-                    trans = SE3(troty(incrament))
+                    trans = pos*SE3(troty(incrament))
                 case 6
-                    trans = SE3(trotz(incrament))
+                    trans = pos*SE3(trotz(incrament))
             end
             Goalq = Robot.model.ikcon(trans);
                 Movement = jtraj(Robot.model.getpos,Goalq,2);
@@ -230,6 +236,14 @@ classdef NewGUITest
                     shouldsStop = CollisionControl.RobotCollisionCheck(Robot,app.System.Colliders)
                     if shouldsStop == false
                     Robot.model.animate(Movement(i,:));
+                    for z = 1:6
+                        app.QDOLables(z).Text = num2str(Movement(2,z))
+                        pos = Robot.model.fkine(Robot.model.getpos).t
+                        if z < 4
+                        app.PosDOLables(z).Text = num2str(pos(z,:))
+                         app.PosDOLables(z).Text = "HELOO"
+                        end
+                    end
                     drawnow()
                     end
                 end
@@ -411,36 +425,36 @@ classdef NewGUITest
             % Create Button
             app.Button = uibutton(app.XYZTab, 'push');
             app.Button.Position = [234 238 25 23];
-            app.Button.ButtonPushedFcn = @(src,event) AdjustCartasian(app,1,0.1,app.System.UR3);
+            app.Button.ButtonPushedFcn = @(src,event) AdjustCartasian(app,1,0.05,app.System.UR3);
             app.Button.Text = '+';
 
             % Create Button_2
             app.Button_2 = uibutton(app.XYZTab, 'push');
-            app.Button_2.ButtonPushedFcn = @(src,event) AdjustCartasian(app,2,0.1,app.System.UR3);
+            app.Button_2.ButtonPushedFcn = @(src,event) AdjustCartasian(app,2,0.05,app.System.UR3);
             app.Button_2.Position = [234 209 25 23];
             app.Button_2.Text = '+';
 
             % Create Button_3
             app.Button_3 = uibutton(app.XYZTab, 'push');
-            app.Button_3.ButtonPushedFcn = @(src,event) AdjustCartasian(app,3,0.1,app.System.UR3);
+            app.Button_3.ButtonPushedFcn = @(src,event) AdjustCartasian(app,3,0.05,app.System.UR3);
             app.Button_3.Position = [234 178 25 23];
             app.Button_3.Text = '+';
 
             % Create Button_4
             app.Button_4 = uibutton(app.XYZTab, 'push');
             app.Button_4.Position = [234 150 25 23];
-            app.Button_4.ButtonPushedFcn = @(src,event) AdjustCartasian(app,4,0.1,app.System.UR3);
+            app.Button_4.ButtonPushedFcn = @(src,event) AdjustCartasian(app,4,0.05,app.System.UR3);
             app.Button_4.Text = '+';
 
             % Create Button_5
             app.Button_5 = uibutton(app.XYZTab, 'push');
             app.Button_5.Position = [234 118 25 23];
-            app.Button_5.ButtonPushedFcn = @(src,event) AdjustCartasian(app,5,0.1,app.System.UR3);
+            app.Button_5.ButtonPushedFcn = @(src,event) AdjustCartasian(app,5,0.05,app.System.UR3);
             app.Button_5.Text = '+';
 
             % Create Button_6
             app.Button_6 = uibutton(app.XYZTab, 'push');
-            app.Button_6.ButtonPushedFcn = @(src,event) AdjustCartasian(app,6,0.1,app.System.UR3);
+            app.Button_6.ButtonPushedFcn = @(src,event) AdjustCartasian(app,6,0.05,app.System.UR3);
             app.Button_6.Position = [234 89 25 23];
             app.Button_6.Text = '+';
 
@@ -477,41 +491,43 @@ classdef NewGUITest
             app.Label2_6.Position = [281 91 41 22];
             app.Label2_6.Text = 'Label2';
 
+            app.PosDOLables = [ app.Label2,app.Label2_2,app.Label2_3,app.Label2_4,app.Label2_5,app.Label2_6]
+
             %% Creating - Buttons for UR3
             % Create Button_7
             app.Button_7 = uibutton(app.XYZTab, 'push');
             app.Button_7.Position = [106 238 25 23];
-            app.Button_7.ButtonPushedFcn = @(src,event) AdjustCartasian(app,1,-0.1,app.System.UR3);
+            app.Button_7.ButtonPushedFcn = @(src,event) AdjustCartasian(app,1,-0.05,app.System.UR3);
             app.Button_7.Text = '-';
 
             % Create Button_8
             app.Button_8 = uibutton(app.XYZTab, 'push');
             app.Button_8.Position = [106 209 25 23];
-            app.Button_8.ButtonPushedFcn = @(src,event) AdjustCartasian(app,2,-10.,app.System.UR3);
+            app.Button_8.ButtonPushedFcn = @(src,event) AdjustCartasian(app,2,-0.05,app.System.UR3);
             app.Button_8.Text = '-';
 
             % Create Button_9
             app.Button_9 = uibutton(app.XYZTab, 'push');
             app.Button_9.Position = [106 178 25 23];
-            app.Button_9.ButtonPushedFcn = @(src,event) AdjustCartasian(app,3,-0.1,app.System.UR3);
+            app.Button_9.ButtonPushedFcn = @(src,event) AdjustCartasian(app,3,-0.05,app.System.UR3);
             app.Button_9.Text = '-';
 
             % Create Button_10
             app.Button_10 = uibutton(app.XYZTab, 'push');
             app.Button_10.Position = [106 150 25 23];
-            app.Button_10.ButtonPushedFcn = @(src,event) AdjustCartasian(app,4,-0.1,app.System.UR3);
+            app.Button_10.ButtonPushedFcn = @(src,event) AdjustCartasian(app,4,-0.05,app.System.UR3);
             app.Button_10.Text = '-';
 
             % Create Button_11
             app.Button_11 = uibutton(app.XYZTab, 'push');
             app.Button_11.Position = [106 118 25 23];
-            app.Button_11.ButtonPushedFcn = @(src,event) AdjustCartasian(app,5,-0.1,app.System.UR3);
+            app.Button_11.ButtonPushedFcn = @(src,event) AdjustCartasian(app,5,-0.05,app.System.UR3);
             app.Button_11.Text = '-';
 
             % Create Button_12
             app.Button_12 = uibutton(app.XYZTab, 'push');
             app.Button_12.Position = [106 89 25 23];
-            app.Button_12.ButtonPushedFcn = @(src,event) AdjustCartasian(app,6,-0.1,app.System.UR3);
+            app.Button_12.ButtonPushedFcn = @(src,event) AdjustCartasian(app,6,-0.05,app.System.UR3);
             app.Button_12.Text = '-';
 
             % Create EnterButton
@@ -624,6 +640,8 @@ classdef NewGUITest
             % Create Label_6
             app.Label_6 = uilabel(app.QTab);
             app.Label_6.Position = [286 33 34 22];
+
+            app.QDOLables = [ app.Label, app.Label_2, app.Label_3, app.Label_4, app.Label_5, app.Label_6]
 
 
             % Create StatusLamp
@@ -962,7 +980,7 @@ classdef NewGUITest
 
 
             if nargout == 0
-                clear app
+                %clear app
             end
         end
     end
